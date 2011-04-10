@@ -59,7 +59,7 @@ body, html {
 $width: 600px;
 $border: 1px solid #bbb;
 
-#todos {
+#todo {
   @include box-shadow(rgba(0,0,0,0.6), 0, 0, 1px);
   @include border-radius(8px);
 

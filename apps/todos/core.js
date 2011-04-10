@@ -4,28 +4,40 @@
 // ==========================================================================
 /*globals Todos */
 
-Todos = SC.Application.create();
+/** @namespace
 
-Todos.Todo = SC.Object.extend({
-  title: null,
-  isDone: false});
+ My cool new app.  Describe your application.
 
-jQuery(document).ready(function() {
+ @extends SC.Object
+ */
+Todos = SC.Application.create({
+  store: SC.Store.create().from('Todos.RailsDataSource')
+});
+
+Todos.store.commitRecordsAutomatically = true;
+
+Todos.Todo = SC.Record.extend({
+  primaryKey: 'id',
+  isDone: SC.Record.attr(Boolean),
+  title: SC.Record.attr(String)
+});
+
+Todos.Todo.mixin({
+  resourcePath: 'todo',
+  pluralResourcePath: '_todos'
+});
+
+
+SC.ready(function() {
   Todos.mainPane = SC.TemplatePane.append({
-    layerId: 'todos',
+    layerId: 'todo',
     templateName: 'todos'
   });
 });
 
 Todos.todoListController = SC.ArrayController.create({
-  // Initialize the array controller with an empty array.
-  content: [],
- 
-  // Creates a new todo with the passed title, then adds it
-  // to the array.
   createTodo: function(title) {
-    var todo = Todos.Todo.create({title: title});
-    this.pushObject(todo);
+    var todo = Todos.store.createRecord(Todos.Todo, {title: title});
   },
 
   remaining: function() {
@@ -33,11 +45,12 @@ Todos.todoListController = SC.ArrayController.create({
   }.property('@each.isDone'),
 
   clearCompletedTodos: function() {
-    this.filterProperty('isDone', true).forEach(this.removeObject, this);
+    this.filterProperty('isDone', true).forEach(function(todo) { todo.destroy(); });
   },
+
   allAreDone: function(key, value) {
     if (value !== undefined) {
-      this.setEach('isDone', value);
+      Todos.todoListController.setEach('isDone', value);
       return value;
     } else {
       return this.get('length') && this.everyProperty('isDone', true);
@@ -46,11 +59,11 @@ Todos.todoListController = SC.ArrayController.create({
 });
 
 // at the end of the file
- 
+
 Todos.CreateTodoView = SC.TemplateView.create(SC.TextFieldSupport, {
   insertNewline: function() {
     var value = this.get('value');
- 
+
     if (value) {
       Todos.todoListController.createTodo(value);
       this.set('value', '');
@@ -66,7 +79,7 @@ Todos.todoListView = SC.TemplateCollectionView.create({
     // if the Todo object is marked isDone
     isDoneDidChange: function() {
       var isDone = this.getPath('content.isDone');
- 
+
       this.$().toggleClass('done', isDone);
     }.observes('.content.isDone')
   })
