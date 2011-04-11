@@ -39,10 +39,11 @@ Todos.RailsDataSource = SC.DataSource.extend(
   },
 
   updateRecord: function(store, storeKey) {
-    console.log("updateRecord");
     var recordType = store.recordTypeFor(storeKey),
         id = store.idFor(storeKey),
-        data = store.readDataHash(storeKey);
+        data = {};
+
+    data[recordType.resourceName] = store.readDataHash(storeKey);
 
     SC.Request.putUrl("/%@/%@".fmt(recordType.resourcePath, id))
       .notify(this, 'updateRecordDidComplete', store, storeKey, id)
@@ -88,7 +89,9 @@ Todos.RailsDataSource = SC.DataSource.extend(
 
   createRecord: function(store, storeKey) {
     var recordType = store.recordTypeFor(storeKey),
-        data = store.readDataHash(storeKey);
+        data = {};
+
+    data[recordType.resourceName] = store.readDataHash(storeKey);
 
     SC.Request.postUrl("/%@".fmt(recordType.pluralResourcePath))
       .notify(this, 'createRecordDidComplete', store, storeKey)
