@@ -24,7 +24,8 @@ Todos.Todo = SC.Record.extend({
 
 Todos.Todo.mixin({
   resourcePath: '_todos',
-  pluralResourcePath: '_todos'
+  pluralResourcePath: '_todos',
+  resourceName: 'todo'
 });
 
 
