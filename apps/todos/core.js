@@ -18,12 +18,12 @@ Todos.store.commitRecordsAutomatically = true;
 
 Todos.Todo = SC.Record.extend({
   primaryKey: 'id',
-  isDone: SC.Record.attr(Boolean),
-  title: SC.Record.attr(String)
+  title: SC.Record.attr(String),
+  isDone: SC.Record.attr(Boolean, { defaultValue: NO, key: "done" })
 });
 
 Todos.Todo.mixin({
-  resourcePath: 'todo',
+  resourcePath: '_todos',
   pluralResourcePath: '_todos'
 });
 
