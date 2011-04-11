@@ -11,16 +11,18 @@ class TodosController < ApplicationController
 
   def create
     @todo = Todo.create(params[:todo])
-    respond_with(@todo)
+    render :json => @todo.attributes.merge(:status => "OK")
   end
 
   def update
     @todo = Todo.find(params[:id])
     @todo.update_attributes(params[:todo])
-    respond_with(@todo)
+    render :json => @todo.attributes.merge(:status => "OK")
   end
 
   def destroy
-    respond_with(Todo.find(params[:id]).destroy)
+    @todo = Todo.find(params[:id])
+    @todo.destroy
+    render :json => @todo.attributes.merge(:status => "OK")
   end
 end
