@@ -53,7 +53,7 @@ Todos.RailsDataSource = SC.DataSource.extend(
   },
 
   updateRecordDidComplete: function(response, store, storeKey, id) {
-    if(SC.ok(response) && response.get('body').status === "OK") {
+    if(SC.ok(response) && response.get('status') === 200) {
       // Tell the store that we have successfully updated
       store.dataSourceDidComplete(storeKey);
     } else {
@@ -77,7 +77,7 @@ Todos.RailsDataSource = SC.DataSource.extend(
   },
 
   retrieveRecordDidComplete: function(response, store, storeKey, id) {
-    if(SC.ok(response) && response.get('body').status === "OK") {
+    if(SC.ok(response) && response.get('status') === 200) {
       // Tell the store that we have successfully updated
       store.dataSourceDidComplete(storeKey,
                                   response.get('body').record);
@@ -102,7 +102,7 @@ Todos.RailsDataSource = SC.DataSource.extend(
 
   createRecordDidComplete: function(response, store, storeKey) {
     var body = response.get('body');
-    if(SC.ok(response) && body.status === "OK") {
+    if(SC.ok(response) && response.get('status') === 200) {
       // Tell the store that we have successfully updated
       store.dataSourceDidComplete(storeKey, null, body.id);
     } else {
@@ -124,7 +124,7 @@ Todos.RailsDataSource = SC.DataSource.extend(
 
   destroyRecordDidComplete: function(response, store, storeKey) {
     var body = response.get('body');
-    if(SC.ok(response) && body.status === "OK") {
+    if(SC.ok(response) && response.get('status') === 200) {
       // Tell the store that we have successfully updated
       store.dataSourceDidDestroy(storeKey);
     } else {
