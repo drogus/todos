@@ -23,11 +23,9 @@ Todos.Todo = SC.Record.extend({
 });
 
 Todos.Todo.mixin({
-  resourcePath: '_todos',
-  pluralResourcePath: '_todos',
-  resourceName: 'todo'
+  resourceName: 'todo',
+  pluralResourceName: 'todos'
 });
-
 
 SC.ready(function() {
   Todos.mainPane = SC.TemplatePane.append({
@@ -51,15 +49,13 @@ Todos.todoListController = SC.ArrayController.create({
 
   allAreDone: function(key, value) {
     if (value !== undefined) {
-      Todos.todoListController.setEach('isDone', value);
+      this.setEach('isDone', value);
       return value;
     } else {
       return this.get('length') && this.everyProperty('isDone', true);
     }
-  }
+  }.property('@each.isDone')
 });
-
-// at the end of the file
 
 Todos.CreateTodoView = SC.TemplateView.create(SC.TextFieldSupport, {
   insertNewline: function() {

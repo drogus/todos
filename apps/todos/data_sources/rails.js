@@ -17,7 +17,6 @@ Todos.RailsDataSource = SC.DataSource.extend(
   // ..........................................................
   // QUERY SUPPORT
   //
-
   fetch: function(store, query) {
     SC.Request.getUrl('/%@/'.fmt(query.recordType.pluralResourcePath))
       .json()
@@ -38,99 +37,190 @@ Todos.RailsDataSource = SC.DataSource.extend(
     }
   },
 
-  updateRecord: function(store, storeKey) {
-    var recordType = store.recordTypeFor(storeKey),
-        id = store.idFor(storeKey),
-        data = {};
+  updateRecords: function(store, storeKeys) {
+    var records = {},
+        recordTypes = [];
+    for(var i = 0; i < storeKeys.length; i++) {
+      var recordType = store.recordTypeFor(storeKeys[i]),
+          data = store.readDataHash(storeKeys[i]),
+          id = store.idFor(storeKeys[i]),
+          resourceName = recordType.pluralResourceName;
 
-    data[recordType.resourceName] = store.readDataHash(storeKey);
+      if(records[resourceName] === undefined) {
+        records[resourceName] = [];
+      }
+      data['id'] = id;
+      records[resourceName].push(data);
+      if($.inArray(recordType, recordTypes) === -1) {
+        recordTypes.push(recordType);
+      }
+    }
 
-    SC.Request.putUrl("/%@/%@".fmt(recordType.resourcePath, id))
-      .notify(this, 'updateRecordDidComplete', store, storeKey, id)
-      .json().send(data);
+    SC.Request.putUrl("/api/bulk")
+              .notify(this, 'updateRecordsDidComplete', store, recordTypes, storeKeys)
+              .json().send(records);
 
     return YES;
   },
 
-  updateRecordDidComplete: function(response, store, storeKey, id) {
+  updateRecordsDidComplete: function(response, store, recordTypes, storeKeys) {
     if(SC.ok(response) && response.get('status') === 200) {
-      // Tell the store that we have successfully updated
-      store.dataSourceDidComplete(storeKey);
+      var body = response.get('body');
+      for(var i = 0; i < recordTypes.length; i++) {
+        var recordType = recordTypes[i];
+        var records = body[recordType.pluralResourceName];
+        for(var j = 0; j < records.length; j++) {
+          var storeKey = recordType.storeKeyFor(records[j]["id"]);
+          store.dataSourceDidComplete(storeKey);
+        }
+      }
     } else {
-      // Tell the store that your server returned an error
-      store.dataSourceDidError(storeKey, response);
+      for(var i = 0; i < storeKeys; i++) {
+        store.dataSourceDidError(storeKeys[i], response);
+      }
     }
   },
   // ..........................................................
   // RECORD SUPPORT
   //
-  retrieveRecord: function(store, storeKey) {
-    var recordType = store.recordTypeFor(storeKey),
-        id = store.idFor(storeKey),
-        data = store.readDataHash(storeKey);
+  retrieveRecords: function(store, storeKeys) {
+    var records = {},
+        recordTypes = [],
+        queryString = [];
 
-    SC.Request.getUrl("/%@/%@".fmt(recordType.resourcePath, id))
-      .notify(this, 'retrieveRecordDidComplete', store, storeKey, id)
-      .json().send(data);
+    for(var i = 0; i < storeKeys.length; i++) {
+      var recordType = store.recordTypeFor(storeKeys[i]),
+          id = store.idFor(storeKeys[i]),
+          resourceName = recordType.pluralResourceName;
+
+      queryString.push("%@[]=%@".fmt(resourceName, id));
+      if($.inArray(recordType, recordTypes) === -1) {
+        recordTypes.push(recordType);
+      }
+    }
+
+    SC.Request.getUrl("/_strobe/proxy/localhost:3000/api/bulk?%@".fmt(queryString.join('&')))
+              .notify(this, 'retrieveRecordsDidComplete', store, recordTypes, storeKeys)
+              .json().send();
 
     return YES;
   },
 
-  retrieveRecordDidComplete: function(response, store, storeKey, id) {
+  retrieveRecordsDidComplete: function(response, store, recordTypes, storeKeys) {
     if(SC.ok(response) && response.get('status') === 200) {
-      // Tell the store that we have successfully updated
-      store.dataSourceDidComplete(storeKey,
-                                  response.get('body').record);
+      var body = response.get('body');
+      for(var i = 0; i < recordTypes.length; i++) {
+        var recordType = recordTypes[i],
+            records = body[recordType.pluralResourceName];
+
+        for(var j = 0; j < records.length; j++) {
+          var record = records[j],
+              id = record['id'],
+              storeKey = recordType.storeKeyFor(id);
+
+          store.dataSourceDidComplete(storeKey, record, id);
+        }
+      }
     } else {
-      // Tell the store that your server returned an error
-      store.dataSourceDidError(storeKey, response);
+      for(var i = 0; i < storeKeys; i++) {
+        store.dataSourceDidError(storeKeys[i], response);
+      }
     }
   },
 
-  createRecord: function(store, storeKey) {
-    var recordType = store.recordTypeFor(storeKey),
-        data = {};
+  createRecords: function(store, storeKeys) {
+    var records = {},
+        recordTypes = [];
 
-    data[recordType.resourceName] = store.readDataHash(storeKey);
+    for(var i = 0; i < storeKeys.length; i++) {
+      var recordType = store.recordTypeFor(storeKeys[i]),
+          data = store.readDataHash(storeKeys[i]),
+          resourceName = recordType.pluralResourceName;
 
-    SC.Request.postUrl("/%@".fmt(recordType.pluralResourcePath))
-      .notify(this, 'createRecordDidComplete', store, storeKey)
-      .json().send(data);
+      // need to pass storeKey to not loose track of the object since
+      // we do not have an id yet
+      data["_storeKey"] = storeKeys[i];
+      if(records[resourceName] === undefined) {
+        records[resourceName] = [];
+      }
+      records[resourceName].push(data);
+      if($.inArray(recordType, recordTypes) === -1) {
+        recordTypes.push(recordType);
+      }
+    }
+
+    // TODO: where to save that url?
+    SC.Request.postUrl("/api/bulk")
+              .notify(this, 'createRecordsDidComplete', store, recordTypes, storeKeys)
+              .json().send(records);
 
     return YES;
   },
 
-  createRecordDidComplete: function(response, store, storeKey) {
-    var body = response.get('body');
+  createRecordsDidComplete: function(response, store, recordTypes, storeKeys) {
     if(SC.ok(response) && response.get('status') === 200) {
-      // Tell the store that we have successfully updated
-      store.dataSourceDidComplete(storeKey, null, body.id);
+      var body = response.get('body');
+      for(var i = 0; i < recordTypes.length; i++) {
+        var recordType = recordTypes[i],
+            records = body[recordType.pluralResourceName];
+
+        for(var j = 0; j < records.length; j++) {
+          var record = records[j];
+          store.dataSourceDidComplete(record["_storeKey"], null, record["id"]);
+        }
+      }
     } else {
-      // Tell the store that your server returned an error
-      store.dataSourceDidError(storeKey, response);
+      for(var i = 0; i < storeKeys; i++) {
+        store.dataSourceDidError(storeKeys[i], response);
+      }
     }
   },
 
-  destroyRecord: function(store, storeKey) {
-    var recordType = store.recordTypeFor(storeKey),
-        id = store.idFor(storeKey);
+  destroyRecords: function(store, storeKeys) {
+    var records = {},
+        recordTypes = [];
 
-    SC.Request.deleteUrl("/%@/%@".fmt(recordType.resourcePath, id))
-      .notify(this, 'destroyRecordDidComplete', store, storeKey)
-      .json().send();
+    for(var i = 0; i < storeKeys.length; i++) {
+      var recordType = store.recordTypeFor(storeKeys[i]),
+          id = store.idFor(storeKeys[i]),
+          resourceName = recordType.pluralResourceName;
+
+      if(records[resourceName] === undefined) {
+        records[resourceName] = [];
+      }
+      records[resourceName].push(id);
+      if($.inArray(recordType, recordTypes) === -1) {
+        recordTypes.push(recordType);
+      }
+    }
+
+    SC.Request.deleteUrl("/_strobe/proxy/localhost:3000/api/bulk")
+              .notify(this, 'destroyRecordsDidComplete', store, recordTypes, storeKeys)
+              .json().send(records);
 
     return YES;
   },
 
-  destroyRecordDidComplete: function(response, store, storeKey) {
-    var body = response.get('body');
+  destroyRecordsDidComplete: function(response, store, recordTypes, storeKeys) {
     if(SC.ok(response) && response.get('status') === 200) {
-      // Tell the store that we have successfully updated
-      store.dataSourceDidDestroy(storeKey);
+      var body = response.get('body');
+      for(var i = 0; i < recordTypes.length; i++) {
+        var recordType = recordTypes[i],
+            records = body[recordType.pluralResourceName];
+
+        for(var j = 0; j < records.length; j++) {
+          var id = records[j],
+              storeKey = recordType.storeKeyFor(id);
+
+          store.dataSourceDidDestroy(storeKey);
+        }
+      }
     } else {
-      // Tell the store that your server returned an error
-      store.dataSourceDidError(storeKey, response);
+      for(var i = 0; i < storeKeys; i++) {
+        store.dataSourceDidError(storeKeys[i], response);
+      }
     }
   }
+
 }) ;
 

@@ -14,6 +14,7 @@ Todos.main = function main() {
   // ex: Todos.contactsController.set('content',Todos.contacts);
 
   var query = SC.Query.local(Todos.Todo, { orderBy: 'isDone,title' });
+//  var query = Todos.Todo;
   var todos = Todos.store.find(query);
   Todos.todoListController.set('content', todos);
 };
