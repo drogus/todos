@@ -1,2 +1,0 @@
-config :todos, :required => [:sproutcore, :data_source] 
-

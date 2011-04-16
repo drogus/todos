@@ -4,6 +4,5 @@
 # ===========================================================================
 
 # Add initial buildfile information here
-proxy '/_todos', :to => 'localhost:3000', :url => '/todos'
-config :all, :required => "sproutcore/core_foundation", :theme => "sproutcore/empty_theme"
-
+proxy '/api/bulk', :to => 'localhost:3000', :url => '/api/bulk'
+config :all, :required => ["sproutcore/foundation", "sproutcore/datastore", :rails_data_source], :theme => "sproutcore/empty_theme"
