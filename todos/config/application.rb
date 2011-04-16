@@ -41,5 +41,4 @@ module Todos
   end
 end
 
-ActiveRecord::Base.include_root_in_json = false
 Sproutcore::Engine.resources :todos

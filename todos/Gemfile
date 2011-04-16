@@ -1,7 +1,7 @@
 source 'http://rubygems.org'
 
 gem 'rails', '3.0.6'
-gem 'sproutcore_rails', :path => ENV["SPROUTCORE_RAILS"]
+gem 'sproutcore_rails', :path => ENV["SPROUTCORE_RAILS"], :require => 'sproutcore/rails'
 
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
