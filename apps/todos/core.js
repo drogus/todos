@@ -11,9 +11,10 @@
  @extends SC.Object
  */
 Todos = SC.Application.create({
-  store: SC.Store.create().from('Todos.RailsDataSource')
+  store: SC.Store.create().from('SC.RailsDataSource')
 });
 
+Todos.store.bulkApiUrl = "/api/bulk";
 Todos.store.commitRecordsAutomatically = true;
 
 Todos.Todo = SC.Record.extend({
