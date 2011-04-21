@@ -40,5 +40,3 @@ module Todos
     config.filter_parameters += [:password]
   end
 end
-
-Sproutcore::Engine.resources :todos

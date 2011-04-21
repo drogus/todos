@@ -1,8 +1,5 @@
 Todos::Application.routes.draw do
-  resources :todos
-
-  # Define bulk actions for Sproutcore::Engine, it will be done automagically in the future
-  sproutcore("/api/bulk")
+  sproutcore "/api/bulk"
 
   # The priority is based upon order of creation:
   # first created -> highest priority.
