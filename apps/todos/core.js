@@ -11,14 +11,13 @@
  @extends SC.Object
  */
 Todos = SC.Application.create({
-  store: SC.Store.create().from('SC.RailsDataSource')
+  store: SC.Store.create().from('SC.BulkDataSource')
 });
 
 Todos.store.bulkApiUrl = "/api/bulk";
 Todos.store.commitRecordsAutomatically = true;
 
 Todos.Todo = SC.Record.extend({
-  primaryKey: 'id',
   title: SC.Record.attr(String),
   isDone: SC.Record.attr(Boolean, { defaultValue: NO, key: "done" })
 });

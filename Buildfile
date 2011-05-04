@@ -5,4 +5,4 @@
 
 # Add initial buildfile information here
 proxy '/api/bulk', :to => 'localhost:3000', :url => '/api/bulk'
-config :all, :required => ["sproutcore/foundation", "sproutcore/datastore", :rails_data_source], :theme => "sproutcore/empty_theme"
+config :all, :required => ["sproutcore/foundation", "sproutcore/datastore", :bulk_data_source], :theme => "sproutcore/empty_theme"
