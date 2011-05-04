@@ -1,5 +1,5 @@
 Todos::Application.routes.draw do
-  sproutcore "/api/bulk"
+  bulk_routes "/api/bulk"
 
   # The priority is based upon order of creation:
   # first created -> highest priority.
